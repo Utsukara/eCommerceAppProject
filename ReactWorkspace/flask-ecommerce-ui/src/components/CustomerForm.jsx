@@ -13,9 +13,35 @@ class CustomerForm extends Component {
             email: "",
             phone: "",
             errors: {},
-            submitError: null
+            submitError: null,
+            selectedCustomerID: null
         };
     }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.customerID !== this.props.customerID) {
+            this.setState({ selectedCustomerID: this.props.customerID });
+
+            if (this.props.customerID) {
+                axios.get(`http://127.0.0.1:5000/customers/${this.props.customerID}`)
+                    .then(response => {
+                        const { name, email, phone } = response.data;
+                        this.setState({ 
+                            name: customerData.name, 
+                            email: customerData.email, 
+                            phone: customerData.phone
+                         });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching customer:', error);
+                    });
+            }else{
+                this.setState({ name: "", email: "", phone: "" });
+            }
+        }
+    }
+
+
 
     handleChange = (event) => {
         const { name, value } = event.target;
@@ -43,16 +69,29 @@ class CustomerForm extends Component {
                 email: this.state.email.trim(),
                 phone: this.state.phone.trim()
             };
+            const apiURL = this.state.selectedCustomerID ?
+                `http://127.0.0.1:5000/customers/${this.state.selectedCustomerID}` :
+                'http://127.0.0.1:5000/customers';
 
-            axios.post('http://127.0.0.1:5000/customers', customerData)
+            const httpMethod = this.state.selectedCustomerID ? axios.put : axios.post;
+
+            httpMethod(apiURL, customerData)
                 .then(response => {
-                    console.log('Data successfully submitted:', response.data);
-                    this.setState({ name: "", email: "", phone: "", errors: {}, submitError: null });
+                    this.props.onUpdateCustomerList();
+                    this.setState({ 
+                        name: "", 
+                        email: "", 
+                        phone: "", 
+                        errors: {}, 
+                        submitError: null 
+                    });
                 })
                 .catch(error => {
-                    console.error('Error submitting form:', error);
-                    this.setState({ submitError: 'Error submitting form' });
+                    console.error('Error saving customer:', error);
+                    this.setState({ submitError: "Error submitting form" });
                 });
+        }else{
+            this.setState({ submitError: null });
         }
     };
 

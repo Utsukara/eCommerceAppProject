@@ -1,63 +1,116 @@
-import React, { useRef, useState } from 'react';
-import axios from 'axios';
+import axios from "axios";
+import React, { Component } from "react";
 
-const ProductForm = ({ onProductAdd }) => {
-    const nameRef = useRef(null);
-    const priceRef = useRef(null);
-    const [errors, setErrors] = useState({});
+// Controlled Component
+class ProductForm extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { 
+            name: "",
+            price: "",
+            errors: {},
+            submitError: null,
+            selectedProductID: null
+        };
+    }
 
-    const validateForm = () => {
+    componentDidUpdate(prevProps) {
+        if (prevProps.productID !== this.props.productID) {
+            this.setState({ selectedProductID: this.props.productID });
+
+            if (this.props.productID) {
+                axios.get(`http://127.0.0.1:5000/products/${this.props.productID}`)
+                    .then(response => {
+                        const { name, price } = response.data;
+                        this.setState({ 
+                            name: name, 
+                            price: price.toString()  // Ensure price is a string for the input field
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching product:', error);
+                    });
+            } else {
+                this.setState({ name: "", price: "" });
+            }
+        }
+    }
+
+    handleChange = (event) => {
+        const { name, value } = event.target;
+        this.setState({ [name]: value });
+    }
+
+    validateForm = () => {
+        const { name, price } = this.state;
         const errors = {};
-        const name = nameRef.current.value;
-        const price = priceRef.current.value;
         if (!name) errors.name = "Name is required";
-        if (!price || price <= 0) errors.price = "Price is required and must be a positive number";
+        if (!price) {
+            errors.price = "Price is required";
+        } else if (isNaN(price) || parseFloat(price) <= 0) {
+            errors.price = "Price must be a positive number";
+        }
         return errors;
     };
-    
-    const handleSubmit = (event) => {
+
+    handleSubmit = (event) => {
         event.preventDefault();
-        const errors = validateForm();
+        const errors = this.validateForm();
+        this.setState({ errors });
         if (Object.keys(errors).length === 0) {
-            const name = nameRef.current.value;
-            const price = parseFloat(priceRef.current.value);
-            const productData = { name, price };
-            
-            axios.post('http://127.0.0.1:5000/products', productData)
+            console.log('Submitted product:', this.state);
+
+            const productData = {
+                name: this.state.name.trim(),
+                price: parseFloat(this.state.price)
+            };
+            const apiURL = this.state.selectedProductID ?
+                `http://127.0.0.1:5000/products/${this.state.selectedProductID}` :
+                'http://127.0.0.1:5000/products';
+
+            const httpMethod = this.state.selectedProductID ? axios.put : axios.post;
+
+            httpMethod(apiURL, productData)
                 .then(response => {
-                    console.log('Product successfully added:', response.data);
-                    onProductAdd(response.data);
+                    this.props.onUpdateProductList();
+                    this.setState({ 
+                        name: "", 
+                        price: "", 
+                        errors: {}, 
+                        submitError: null 
+                    });
                 })
                 .catch(error => {
-                    console.error('Error adding product:', error.response ? error.response.data : error.message);
+                    console.error('Error saving product:', error);
+                    this.setState({ submitError: "Error submitting form" });
                 });
-
-            // Clear input fields after submission
-            nameRef.current.value = '';
-            priceRef.current.value = '';
         } else {
-            setErrors(errors);
+            this.setState({ submitError: null });
         }
     };
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <h3>Add/Edit Product</h3>
-            <label>
-                Name:
-                <input type="text" ref={nameRef} />
-                {errors.name && <div style={{ color: 'red' }}>{errors.name}</div>}
-            </label>
-            <br />
-            <label>
-                Price:
-                <input type="number" ref={priceRef} />
-                {errors.price && <div style={{ color: 'red' }}>{errors.price}</div>}
-            </label>
-            <br />
-            <button type="submit">Submit</button>
-        </form>
-    );
+    render() {
+        const { name, price, errors, submitError } = this.state;
+        return (
+            <form onSubmit={this.handleSubmit}>
+                <h3>Add/Edit Product</h3>
+                <label>
+                    Name:
+                    <input type="text" name="name" value={name} onChange={this.handleChange} />
+                    {errors.name && <div style={{ color: 'red' }}>{errors.name}</div>}
+                </label>
+                <br />
+                <label>
+                    Price:
+                    <input type="number" step="0.01" name="price" value={price} onChange={this.handleChange} />
+                    {errors.price && <div style={{ color: 'red' }}>{errors.price}</div>}
+                </label>
+                <br />
+                {submitError && <div style={{ color: 'red' }}>{submitError}</div>}
+                <button type="submit">Submit</button>
+            </form>
+        );
+    }
 }
 
 export default ProductForm;
