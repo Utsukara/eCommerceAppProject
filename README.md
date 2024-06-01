@@ -7,8 +7,10 @@ Key Features:
 Customer Management: Create, read, update, and delete customer information.
 Product Management: Create, read, update, and delete product details.
 Order Management: Place orders, retrieve order details, and manage order history.
+
 **Important Note:**
 **The app.py script includes metadata for database schema creation. However, there may be issues with automatic database creation in MySQL. Users might need to manually create the necessary databases and tables using MySQL Workbench or another database management tool.**
+
 API Endpoints
 Customer Endpoints:
 GET /customers: Retrieve a list of all customers.
