@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import { ListGroup, Button, Container } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 class ProductList extends Component {
   constructor(props) {
@@ -25,16 +27,6 @@ class ProductList extends Component {
       });
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.selectedProductID !== this.state.selectedProductID) {
-      console.log(`Selected Product ID: ${this.state.selectedProductID}`);
-    }
-  }
-
-  componentWillUnmount() {
-    console.log('ProductList component unmounted');
-  }
-
   selectedProduct = (id) => {
     this.setState({ selectedProductID: id });
     this.props.onProductSelect(id);
@@ -52,18 +44,23 @@ class ProductList extends Component {
   }
 
   render() {
+    const { products } = this.state;
     return (
-      <div className="product-list">
+      <Container>
         <h3>Products</h3>
-        <ul>
-          {this.state.products.map((product) => (
-            <li key={product.id} onClick={() => this.selectedProduct(product.id)}>
-              {product.name}: ${product.price}
-              <button onClick={(e) => { e.stopPropagation(); this.deleteProduct(product.id); }}>Delete</button>
-            </li>
+        <ListGroup>
+          {products.map(product => (
+            <ListGroup.Item
+              key={product.id}
+              className="d-flex justify-content-between align-items-center list-group-item-hover"
+              onClick={() => this.selectedProduct(product.id)}
+            >
+              <Link to={`/edit-product/${product.id}`}>{product.name}: ${product.price}</Link>
+              <Button variant="danger" size="sm" className="ml-3" onClick={(e) => { e.stopPropagation(); this.deleteProduct(product.id); }}>Delete</Button>
+            </ListGroup.Item>
           ))}
-        </ul>
-      </div>
+        </ListGroup>
+      </Container>
     );
   }
 }

@@ -1,31 +1,94 @@
-body{
-  font-family: Arial, sans-serif;
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #ffe4e1; /* light pink background */
   padding: 20px;
+  color: #4a4a4a; /* dark gray text for contrast */
 }
 
-.customer-list{
-  border: 1px solid #ccc;
+nav {
+  background-color: #ff69b4; /* hot pink background */
+  overflow: hidden;
+  border-radius: 8px; /* rounded corners */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* subtle shadow for depth */
+  margin-bottom: 30px; /* margin under navbar */
+  padding-left: 20px; /* Add padding to the left */
+  padding-right: 20px; /* Add padding to the right */
+}
+
+.navbar-toggler {
+  margin-left: 10px; /* Add margin to the left */
+  margin-right: 10px; /* Add margin to the right */
+}
+
+nav a {
+  float: left;
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  transition: background-color 0.3s, color 0.3s; /* smooth transitions */
+  margin-left: 10px; /* Add space between navbar items */
+}
+
+nav a:hover {
+  background-color: #fff;
+  color: #ff69b4; /* hot pink text on hover */
+  border-radius: 70px; /* rounded corners */
+}
+
+nav a.active {
+  background-color: #fff;
+  color: #ff69b4; /* hot pink active link */
+  border-radius: 70px; /* rounded corners */
+}
+
+.customer-list {
+  border: 1px solid #ffb6c1; /* light pink border */
   padding: 10px;
   margin: 10px 0;
+  background-color: #fff; /* white background for contrast */
 }
 
-h3{
+h3 {
   margin: 0 0 10px 0;
+  color: #ff69b4; /* hot pink for headers */
 }
 
-ul{
+ul {
   list-style-type: none;
   padding: 0;
 }
 
-li{
+li {
   cursor: pointer;
   margin: 5px 0;
   padding: 5px;
   border-radius: 4px;
-  background-color: white;
+  background-color: #fff;
+  border: 1px solid #ffb6c1; /* light pink border */
 }
 
-li:hover{
-  background-color: #6b6363;
+li:hover {
+  background-color: #ffb6c1; /* light pink on hover */
+}
+
+.list-group-item-hover:hover {
+  background-color: #f8d7da; /* Light pink */
+  cursor: pointer;
+}
+
+.form-group-spacing {
+  margin-top: 10px;
+  margin-bottom: 20px; /* Adjust the value as needed */
+}
+
+.button-spacing {
+  margin-top: 20px;
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
 }

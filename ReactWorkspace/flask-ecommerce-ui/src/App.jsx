@@ -1,49 +1,54 @@
-import React, { Component } from "react";
-import CustomerList from "./components/CustomerList";
-import ProductList from "./components/ProductList";
-import CustomerForm from "./components/CustomerForm";
-import ProductForm from "./components/ProductForm";
+import React from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import CustomerList from './components/CustomerList';
+import NavBar from './components/NavBar';
+import CustomerFormWrapper from './components/CustomerFormWrapper';
+import NotFound from './components/NotFound';
+import HomePage from './components/HomePage';
+import PlaceOrderForm from './components/PlaceOrderForm';
+import OrderDetailsWrapper from './components/OrderDetails';
+import OrderHistory from './components/OrderHistory';
+import ProductList from './components/ProductList';
+import ProductFormWrapper from './components/ProductFormWrapper';
 import './AppStyles.css';
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { 
-      selectedCustomerID: null,
-      selectedProductID: null
+function App() {
+    const navigate = useNavigate();
+
+    const handleCustomerSelect = (id) => {
+        navigate(`/edit-customer/${id}`);
     };
-  }
 
-  handleCustomerSelect = (customerID) => {
-    this.setState({ selectedCustomerID: customerID });
-  }
+    const handleUpdateCustomerList = () => {
+        navigate('/customers');
+    };
 
-  updateCustomerList = () => {
-    this.customerListRef.fetchCustomers();
-  }
+    const handleProductSelect = (id) => {
+        navigate(`/edit-product/${id}`);
+    };
 
-  handleProductUpdated = () => {
-    this.productListRef.fetchProducts();
-  }
-
-  handleProductSelect = (productID) => {
-    this.setState({ selectedProductID: productID });
-  }
-
-  render() {
-    const { selectedCustomerID, selectedProductID } = this.state;
+    const handleUpdateProductList = () => {
+        navigate('/products');
+    };
 
     return (
-      <div className='app-container'>
-        <h1>Our Customers</h1>
-        <CustomerForm customerID={selectedCustomerID} onUpdateCustomerList={this.updateCustomerList} />
-        <CustomerList ref={ref => this.customerListRef = ref} onCustomerSelect={this.handleCustomerSelect} />
-        <h1>Our Products</h1>
-        <ProductForm selectedProductID={selectedProductID} onUpdateProductList={this.handleProductUpdated} />
-        <ProductList ref={ref => this.productListRef = ref} onProductSelect={this.handleProductSelect} />
-      </div>
+        <div className="app-container">
+            <NavBar />
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/add-customer" element={<CustomerFormWrapper onUpdateCustomerList={handleUpdateCustomerList} />} />
+                <Route path="/edit-customer/:id" element={<CustomerFormWrapper onUpdateCustomerList={handleUpdateCustomerList} />} />
+                <Route path="/customers" element={<CustomerList onCustomerSelect={handleCustomerSelect} />} />
+                <Route path="/add-product" element={<ProductFormWrapper onUpdateProductList={handleUpdateProductList} />} />
+                <Route path="/edit-product/:id" element={<ProductFormWrapper onUpdateProductList={handleUpdateProductList} />} />
+                <Route path="/products" element={<ProductList onProductSelect={handleProductSelect} />} />
+                <Route path="/place-order" element={<PlaceOrderForm />} />
+                <Route path="/order-details/:id" element={<OrderDetailsWrapper />} />
+                <Route path="/order-history" element={<OrderHistory />} />
+                <Route path="*" element={<NotFound />} />
+            </Routes>
+        </div>
     );
-  }
 }
 
 export default App;

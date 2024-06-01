@@ -1,9 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
-
-// Controlled Component
-// When React (via State) controls the value of a form element.
-// Useful when you need to validate the form data before submitting it.
+import { Form, Button, Container, Alert, Modal } from 'react-bootstrap';
 
 class CustomerForm extends Component {
     constructor(props) {
@@ -14,34 +11,55 @@ class CustomerForm extends Component {
             phone: "",
             errors: {},
             submitError: null,
-            selectedCustomerID: null
+            selectedCustomerID: null,
+            showSuccessModal: false
         };
     }
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.customerID !== this.props.customerID) {
-            this.setState({ selectedCustomerID: this.props.customerID });
+    componentDidMount() {
+        const { id } = this.props.params;
+        if (id) {
+            this.fetchCustomerData(id);
+        }
+    }
 
-            if (this.props.customerID) {
-                axios.get(`http://127.0.0.1:5000/customers/${this.props.customerID}`)
-                    .then(response => {
-                        const { name, email, phone } = response.data;
-                        this.setState({ 
-                            name: customerData.name, 
-                            email: customerData.email, 
-                            phone: customerData.phone
-                         });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching customer:', error);
-                    });
-            }else{
-                this.setState({ name: "", email: "", phone: "" });
+    componentDidUpdate(prevProps) {
+        const { id } = this.props.params;
+        if (prevProps.params.id !== id) {
+            if (id) {
+                this.fetchCustomerData(id);
+            } else {
+                this.clearForm();
             }
         }
     }
 
+    fetchCustomerData = (id) => {
+        axios.get(`http://127.0.0.1:5000/customers/${id}`)
+            .then(response => {
+                const { name, email, phone } = response.data;
+                this.setState({
+                    name,
+                    email,
+                    phone,
+                    selectedCustomerID: id
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching customer:', error);
+            });
+    }
 
+    clearForm = () => {
+        this.setState({
+            name: "",
+            email: "",
+            phone: "",
+            errors: {},
+            submitError: null,
+            selectedCustomerID: null
+        });
+    }
 
     handleChange = (event) => {
         const { name, value } = event.target;
@@ -62,8 +80,6 @@ class CustomerForm extends Component {
         const errors = this.validateForm();
         this.setState({ errors });
         if (Object.keys(errors).length === 0) {
-            console.log('Submitted customer:', this.state);
-
             const customerData = {
                 name: this.state.name.trim(),
                 email: this.state.email.trim(),
@@ -76,51 +92,100 @@ class CustomerForm extends Component {
             const httpMethod = this.state.selectedCustomerID ? axios.put : axios.post;
 
             httpMethod(apiURL, customerData)
-                .then(response => {
-                    this.props.onUpdateCustomerList();
-                    this.setState({ 
-                        name: "", 
-                        email: "", 
-                        phone: "", 
-                        errors: {}, 
-                        submitError: null 
+                .then(() => {
+                    this.setState({
+                        showSuccessModal: true
                     });
                 })
                 .catch(error => {
-                    console.error('Error saving customer:', error);
-                    this.setState({ submitError: "Error submitting form" });
-                });
-        }else{
+                    this.setState({ submitError: error.message });
+                }
+            );
+        } else {
             this.setState({ submitError: null });
         }
     };
 
+    closeModal = () => {
+        this.setState({
+            showSuccessModal: false,
+            name: "",
+            email: "",
+            phone: "",
+            errors: {},
+            submitError: null,
+            selectedCustomerID: null
+        });
+        this.props.navigate("/customers");
+    }
+
     render() {
-        const { name, email, phone, errors, submitError } = this.state;
+        const { name, email, phone, errors, submitError, showSuccessModal } = this.state;
         return (
-            <form onSubmit={this.handleSubmit}>
-                <h3>Add/Edit Customer</h3>
-                <label>
-                    Name:
-                    <input type="text" name="name" value={name} onChange={this.handleChange} />
-                    {errors.name && <div style={{ color: 'red' }}>{errors.name}</div>}
-                </label>
-                <br />
-                <label>
-                    Email:
-                    <input type="text" name="email" value={email} onChange={this.handleChange} />
-                    {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
-                </label>
-                <br />
-                <label>
-                    Phone:
-                    <input type="text" name="phone" value={phone} onChange={this.handleChange} />
-                    {errors.phone && <div style={{ color: 'red' }}>{errors.phone}</div>}
-                </label>
-                <br />
-                {submitError && <div style={{ color: 'red' }}>{submitError}</div>}
-                <button type="submit">Submit</button>
-            </form>
+            <Container>
+                <h3>{this.state.selectedCustomerID ? "Edit Customer" : "Add Customer"}</h3>
+                <Form onSubmit={this.handleSubmit}>
+                    <Form.Group controlId="formName" className="form-group-spacing">
+                        <Form.Label>Name</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="name"
+                            value={name}
+                            onChange={this.handleChange}
+                            isInvalid={!!errors.name}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.name}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group controlId="formEmail" className="form-group-spacing">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                            type="email"
+                            name="email"
+                            value={email}
+                            onChange={this.handleChange}
+                            isInvalid={!!errors.email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.email}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group controlId="formPhone" className="form-group-spacing">
+                        <Form.Label>Phone</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="phone"
+                            value={phone}
+                            onChange={this.handleChange}
+                            isInvalid={!!errors.phone}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {errors.phone}
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    {submitError && <Alert variant="danger">{submitError}</Alert>}
+
+                    <Button variant="primary" type="submit" className="button-spacing">
+                        Submit
+                    </Button>
+                </Form>
+
+                <Modal show={showSuccessModal} onHide={this.closeModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Success</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>Customer information has been successfully {this.state.selectedCustomerID ? "updated" : "added"}.</Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={this.closeModal}>
+                            Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </Container>
         );
     }
 }

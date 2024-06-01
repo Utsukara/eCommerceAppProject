@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import { ListGroup, Button, Container } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 class CustomerList extends Component {
   constructor(props) {
@@ -25,16 +27,6 @@ class CustomerList extends Component {
       });
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.selectedCustomerID !== this.state.selectedCustomerID) {
-      console.log(`Selected Customer ID: ${this.state.selectedCustomerID}`);
-    }
-  }
-
-  componentWillUnmount() {
-    console.log('CustomerList component unmounted');
-  }
-
   selectedCustomer = (id) => {
     this.setState({ selectedCustomerID: id });
     this.props.onCustomerSelect(id);
@@ -52,18 +44,23 @@ class CustomerList extends Component {
   }
 
   render() {
+    const { customers } = this.state;
     return (
-      <div className="customer-list">
+      <Container>
         <h3>Customers</h3>
-        <ul>
-          {this.state.customers.map((customer) => (
-            <li key={customer.id} onClick={() => this.selectedCustomer(customer.id)}>
-              {customer.name}
-              <button onClick={(e) => { e.stopPropagation(); this.deleteCustomer(customer.id); }}>Delete</button>
-            </li>
+        <ListGroup>
+          {customers.map(customer => (
+            <ListGroup.Item
+              key={customer.id}
+              className="d-flex justify-content-between align-items-center list-group-item-hover"
+              onClick={() => this.selectedCustomer(customer.id)}
+            >
+              <Link to={`/edit-customer/${customer.id}`}>{customer.name}</Link>
+              <Button variant="danger" size="sm" className="ml-3" onClick={(e) => { e.stopPropagation(); this.deleteCustomer(customer.id); }}>Delete</Button>
+            </ListGroup.Item>
           ))}
-        </ul>
-      </div>
+        </ListGroup>
+      </Container>
     );
   }
 }

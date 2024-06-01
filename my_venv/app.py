@@ -88,6 +88,13 @@ def get_customers():
     customers = db.session.execute(select(Customer)).scalars().all()
     return customers_schema.jsonify(customers)
 
+@app.route('/customers/<int:id>', methods=['GET'])
+def get_customer(id):
+    customer = db.session.get(Customer, id)
+    if not customer:
+        return jsonify({'error': 'Customer not found'}), 404
+    return customer_schema.jsonify(customer)
+
 @app.route('/customers', methods=['POST'])
 def create_customer():
     try:
@@ -114,7 +121,13 @@ def update_customer(id):
     for key, value in customer_data.items():
         setattr(customer, key, value)
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error updating customer: {e}")
+        return jsonify({'error': 'An error occurred while updating the customer.'}), 500
+
     return customer_schema.jsonify(customer)
 
 @app.route('/customers/<int:id>', methods=['DELETE'])
@@ -141,17 +154,35 @@ def get_orders():
     orders = db.session.execute(select(Order)).scalars().all()
     return orders_schema.jsonify(orders)
 
+@app.route('/orders/<int:id>', methods=['GET'])
+def get_order(id):
+    order = db.session.get(Order, id)
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+    return order_schema.jsonify(order)
+
 @app.route('/orders', methods=['POST'])
 def create_order():
     try:
-        order_data = order_schema.load(request.json)
+        order_data = request.json
+        customer_id = order_data.get('customer_id')
+        product_id = order_data.get('product_id')
+        quantity = order_data.get('quantity')
+
+        customer = db.session.get(Customer, customer_id)
+        product = db.session.get(Product, product_id)
+
+        if not customer or not product:
+            return jsonify({'error': 'Customer or Product not found'}), 404
+
+        new_order = Order(customer_id=customer_id)
+        new_order.products.append(product)
+
+        db.session.add(new_order)
+        db.session.commit()
+        return order_schema.jsonify(new_order), 201
     except ValidationError as err:
         return jsonify(err.messages), 400
-
-    new_order = Order(**order_data)
-    db.session.add(new_order)
-    db.session.commit()
-    return order_schema.jsonify(new_order), 201
 
 @app.route('/orders/<int:id>', methods=['PUT'])
 def update_order(id):
@@ -167,7 +198,13 @@ def update_order(id):
     for key, value in order_data.items():
         setattr(order, key, value)
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error updating order: {e}")
+        return jsonify({'error': 'An error occurred while updating the order.'}), 500
+
     return order_schema.jsonify(order)
 
 @app.route('/orders/<int:id>', methods=['DELETE'])
@@ -193,6 +230,13 @@ def get_products_for_order(order_id):
 def get_products():
     products = db.session.execute(select(Product)).scalars().all()
     return products_schema.jsonify(products)
+
+@app.route('/products/<int:id>', methods=['GET'])
+def get_product(id):
+    product = db.session.get(Product, id)
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    return product_schema.jsonify(product)
 
 @app.route('/products', methods=['POST'])
 def create_product():
@@ -220,7 +264,13 @@ def update_product(id):
     for key, value in product_data.items():
         setattr(product, key, value)
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error updating product: {e}")
+        return jsonify({'error': 'An error occurred while updating the product.'}), 500
+
     return product_schema.jsonify(product)
 
 @app.route('/products/<int:id>', methods=['DELETE'])
