@@ -1,15 +1,15 @@
 import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import CustomerList from './components/CustomerList';
-import NavBar from './components/NavBar';
-import CustomerFormWrapper from './components/CustomerFormWrapper';
-import NotFound from './components/NotFound';
-import HomePage from './components/HomePage';
-import PlaceOrderForm from './components/PlaceOrderForm';
-import OrderDetailsWrapper from './components/OrderDetails';
-import OrderHistory from './components/OrderHistory';
-import ProductList from './components/ProductList';
-import ProductFormWrapper from './components/ProductFormWrapper';
+import CustomerList from './components/CustomerCandF/CustomerList';
+import NavBar from './components/NavBarCandF/NavBar';
+import CustomerFormWrapper from './components/CustomerCandF/CustomerFormWrapper';
+import NotFound from './components/NotFoundCandF/NotFound';
+import HomePage from './components/HomePageCandF/HomePage';
+import PlaceOrderForm from './components/OrderCandF/PlaceOrderForm';
+import OrderDetailsWrapper from './components/OrderCandF/OrderDetailsWrapper';
+import OrderHistory from './components/OrderCandF/OrderHistory';
+import ProductList from './components/ProductCandF/ProductList';
+import ProductFormWrapper from './components/ProductCandF/ProductFormWrapper';
 import './AppStyles.css';
 
 function App() {
