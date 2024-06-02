@@ -7,7 +7,7 @@ from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields, ValidationError
 from sqlalchemy import select
-from sqlalchemy.orm import Session, declarative_base, relationship, mapped_column, Mapped
+from sqlalchemy.orm import declarative_base, relationship, mapped_column, Mapped
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 # Configure logging
@@ -32,8 +32,8 @@ order_product = db.Table(
 
 # Models
 class Customer(Base):
-    __tablename__ = 'customers' # Use lowercase for table names
-    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    __tablename__ = 'customers'  # Use lowercase for table names
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)  # Comma added
     name: Mapped[str] = mapped_column(db.String(255), nullable=False)
     email: Mapped[str] = mapped_column(db.String(255), nullable=False)
     phone: Mapped[str] = mapped_column(db.String(255), nullable=False)
@@ -41,23 +41,23 @@ class Customer(Base):
     orders: Mapped[List['Order']] = relationship('Order', back_populates='customer')
 
 class Order(Base):
-    __tablename__ = 'orders' # Use lowercase for table names
+    __tablename__ = 'orders'  # Use lowercase for table names
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     date: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-    customer_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
+    customer_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('customers.id', ondelete='CASCADE'), nullable=False)
     customer: Mapped['Customer'] = relationship('Customer', back_populates='orders')
     products: Mapped[List['Product']] = relationship('Product', secondary=order_product, back_populates='orders')
 
 class CustomerAccount(Base):
-    __tablename__ = 'customeraccounts' # Use lowercase for table names
+    __tablename__ = 'customeraccounts'  # Use lowercase for table names
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     username: Mapped[str] = mapped_column(db.String(255), nullable=False)
     password: Mapped[str] = mapped_column(db.String(255), nullable=False)
-    customer_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
+    customer_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey('customers.id', ondelete='CASCADE'), nullable=False)
     customer: Mapped['Customer'] = relationship('Customer', back_populates='customer_account')
 
 class Product(Base):
-    __tablename__ = 'products' # Use lowercase for table names
+    __tablename__ = 'products'  # Use lowercase for table names
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     name: Mapped[str] = mapped_column(db.String(255), nullable=False)
     price: Mapped[float] = mapped_column(db.Float, nullable=False)
@@ -132,13 +132,33 @@ def update_customer(id):
 
 @app.route('/customers/<int:id>', methods=['DELETE'])
 def delete_customer(id):
-    customer = db.session.get(Customer, id)
-    if not customer:
-        return jsonify({'error': 'Customer not found'}), 404
+    logger.info(f"Received DELETE request for customer ID: {id}")
+    try:
+        customer = db.session.get(Customer, id)
+        if not customer:
+            logger.error(f"Customer ID: {id} not found")
+            return jsonify({'error': 'Customer not found'}), 404
 
-    db.session.delete(customer)
-    db.session.commit()
-    return '', 204
+        # Delete related orders
+        orders = db.session.execute(select(Order).filter_by(customer_id=id)).scalars().all()
+        for order in orders:
+            db.session.delete(order)
+        
+        # Delete related customer accounts
+        customer_accounts = db.session.execute(select(CustomerAccount).filter_by(customer_id=id)).scalars().all()
+        for account in customer_accounts:
+            db.session.delete(account)
+
+        # Delete customer
+        db.session.delete(customer)
+        db.session.commit()
+        logger.info(f"Customer ID: {id}, associated orders, and customer accounts deleted successfully")
+        return '', 204
+    except Exception as e:
+        logger.error(f"Error deleting customer ID: {id} - {e}")
+        db.session.rollback()
+        return jsonify({'error': 'An error occurred while deleting the customer, their orders, and customer accounts.'}), 500
+
 
 @app.route('/customers/<int:customer_id>/orders', methods=['GET'])
 def get_orders_for_customer(customer_id):

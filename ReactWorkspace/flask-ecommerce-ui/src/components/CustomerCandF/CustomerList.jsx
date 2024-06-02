@@ -55,7 +55,7 @@ class CustomerList extends Component {
               className="d-flex justify-content-between align-items-center list-group-item-hover"
               onClick={() => this.selectedCustomer(customer.id)}
             >
-              <Link to={`/edit-customer/${customer.id}`}>{customer.name}</Link>
+              <Link to={`/edit-customer/${customer.id}`}>ID {customer.id} : {customer.name}</Link>
               <Button variant="danger" size="sm" className="ml-3" onClick={(e) => { e.stopPropagation(); this.deleteCustomer(customer.id); }}>Delete</Button>
             </ListGroup.Item>
           ))}
