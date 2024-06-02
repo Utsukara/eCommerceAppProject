@@ -7,7 +7,7 @@ function NavBar() {
       <Navbar.Toggle aria-controls="basic-navbar-nav" className="navbar-toggler" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
-          <Nav.Link as={NavLink} to="/" exact="true">Home</Nav.Link>
+          <Nav.Link as={NavLink} to="/" exact="true">HelloKitty Cafe</Nav.Link>
           <Nav.Link as={NavLink} to="/add-customer">Add Customer</Nav.Link>
           <Nav.Link as={NavLink} to="/customers">Customers</Nav.Link>
           <Nav.Link as={NavLink} to="/add-product">Add Product</Nav.Link>
