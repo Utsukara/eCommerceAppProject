@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Kellyisnothelping24*@localhost:3306/e_commerce_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:PASSWORDPASSWORD@localhost:3306/e_commerce_db'
 CORS(app)
 
 Base: DeclarativeMeta = declarative_base()
